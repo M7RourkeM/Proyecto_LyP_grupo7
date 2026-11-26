@@ -22,11 +22,15 @@ API en FastAPI que registra tiquetes, consulta el motor de inferencia en Prolog 
    ```
    copy .env.example .env
    ```
-3. Levantar la API:
+3. Crear la base de datos y cargar los datos de prueba (5 departamentos, 7 grupos resolutores, 10 usuarios, 4 agentes y 15 activos, todos ficticios). El script reinicia la base cada vez que se ejecuta:
+   ```
+   .venv\Scripts\python -m scripts.seed
+   ```
+4. Levantar la API:
    ```
    .venv\Scripts\python -m uvicorn app.main:app --reload
    ```
-4. Verificar el estado en `http://localhost:8000/salud` y la documentación en `http://localhost:8000/docs`.
+5. Verificar el estado en `http://localhost:8000/salud` y la documentación en `http://localhost:8000/docs`.
 
 Los comandos usan `.venv\Scripts\python` directamente, así que no hace falta activar el entorno ni cambiar la política de ejecución de PowerShell.
 
