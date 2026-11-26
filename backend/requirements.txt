@@ -5,3 +5,4 @@ pydantic-settings==2.16.3
 sqlalchemy==2.1.9
 httpx==0.28.1
 pytest==9.2.0
+pyswip==0.3.3

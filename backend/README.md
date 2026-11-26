@@ -43,3 +43,10 @@ Los comandos usan `.venv\Scripts\python` directamente, así que no hace falta ac
 ## Base de conocimiento
 
 Los archivos Prolog están en `app/prolog/kb/`. Para usar otra versión de la base basta con cambiar `PROLOG_KB` en `.env`, sin tocar código.
+
+El backend se comunica con el motor por medio de `app/prolog/puente.pl`, que recibe el tiquete en JSON, llama a `diagnostico_completo/4` y devuelve el diagnóstico en JSON. Hay dos adaptadores, que se eligen con `PROLOG_ADAPTADOR` en `.env`:
+
+- `subprocess` (por defecto): ejecuta `swipl` como proceso aparte en cada consulta. Es más lento, pero aislado: un error en Prolog no afecta a la API.
+- `pyswip`: carga la base una sola vez dentro del proceso de la API. Es más rápido, pero requiere reiniciar la API si cambia la base.
+
+Para probar el motor sin crear tiquetes se puede usar `POST /prolog/diagnostico` desde `/docs`.

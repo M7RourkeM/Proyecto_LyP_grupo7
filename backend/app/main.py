@@ -9,7 +9,9 @@ from pydantic import BaseModel, Field
 import app.models  # noqa: F401  (registra los modelos)
 from app.config import Configuracion, obtener_configuracion
 from app.database import Base, motor
-from app.routers import activos, agentes, catalogos, usuarios
+from app.prolog.adaptador_base import ErrorProlog
+from app.routers import activos, agentes, catalogos, prolog, usuarios
+from app.routers.prolog import respuesta_error_prolog
 from app.services.salud import estado_general
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -25,7 +27,7 @@ async def ciclo_de_vida(_app: FastAPI):
 app = FastAPI(
     title="Asistente de Diagnostico y Soporte de TI",
     description="Backend de la mesa de servicios: diagnostico con Prolog e IA generativa local.",
-    version="0.2.0",
+    version="0.3.0",
     lifespan=ciclo_de_vida,
 )
 
@@ -33,6 +35,8 @@ app.include_router(usuarios.router)
 app.include_router(agentes.router)
 app.include_router(activos.router)
 app.include_router(catalogos.router)
+app.include_router(prolog.router)
+app.add_exception_handler(ErrorProlog, respuesta_error_prolog)
 
 
 class EstadoSalud(BaseModel):
