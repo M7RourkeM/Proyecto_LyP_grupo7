@@ -1,0 +1,41 @@
+# Backend: Asistente de Diagnóstico y Soporte de TI
+
+API en FastAPI que registra tiquetes, consulta el motor de inferencia en Prolog y genera, con IA generativa local, una guía para el usuario y una nota técnica para el agente.
+
+## Requisitos
+
+| Herramienta | Versión probada | Instalación en Windows |
+|---|---|---|
+| Python | 3.12 | python.org |
+| SWI-Prolog | 11.0.1 | `winget install --id SWI-Prolog.SWI-Prolog -e` |
+| Ollama | 0.40.18 | `winget install --id Ollama.Ollama -e` |
+| Modelo de IA | qwen2.5:3b (1,9 GB) | `ollama pull qwen2.5:3b` |
+
+## Instalación (PowerShell, desde la carpeta `backend`)
+
+1. Crear el entorno virtual e instalar las dependencias:
+   ```
+   python -m venv .venv
+   .venv\Scripts\python -m pip install -r requirements.txt
+   ```
+2. Copiar la configuración de ejemplo:
+   ```
+   copy .env.example .env
+   ```
+3. Levantar la API:
+   ```
+   .venv\Scripts\python -m uvicorn app.main:app --reload
+   ```
+4. Verificar el estado en `http://localhost:8000/salud` y la documentación en `http://localhost:8000/docs`.
+
+Los comandos usan `.venv\Scripts\python` directamente, así que no hace falta activar el entorno ni cambiar la política de ejecución de PowerShell.
+
+## Pruebas
+
+```
+.venv\Scripts\python -m pytest -q
+```
+
+## Base de conocimiento
+
+Los archivos Prolog están en `app/prolog/kb/`. Para usar otra versión de la base basta con cambiar `PROLOG_KB` en `.env`, sin tocar código.
