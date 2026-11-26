@@ -13,8 +13,8 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from app.config import Configuracion
-from app.schemas.prolog import (DiagnosticoProlog, EntradaDiagnostico, IncidenteAbierto,
-                                ResultadoPrevio)
+from app.schemas.prolog import (CatalogoProlog, DiagnosticoProlog, EntradaDiagnostico,
+                                IncidenteAbierto, ResultadoPrevio)
 
 RUTA_PUENTE = Path(__file__).resolve().parent / "puente.pl"
 
@@ -64,6 +64,17 @@ class AdaptadorProlog(ABC):
         texto = self._armar_json(entrada, incidentes_abiertos, resultados_previos)
         return self._interpretar(self._ejecutar(texto))
 
+    def catalogo(self) -> CatalogoProlog:
+        """Sintomas, peticiones, contextos y evidencias que reconoce el motor."""
+        if not self.ruta_kb.is_file():
+            raise PrologNoDisponible(f"No existe la base de conocimiento: {self.ruta_kb}")
+        texto = json.dumps({"operacion": "catalogo", "timeout_s": self.config.prolog_timeout_s})
+        datos = self._leer_json(self._ejecutar(texto))
+        try:
+            return CatalogoProlog.model_validate(datos)
+        except ValidationError as error:
+            raise ErrorProlog(f"Catalogo del motor con formato inesperado: {error}") from error
+
     @abstractmethod
     def _ejecutar(self, texto_entrada: str) -> str:
         """Envia el JSON a puente.pl y devuelve el JSON de respuesta."""
@@ -80,13 +91,18 @@ class AdaptadorProlog(ABC):
         return json.dumps(datos, ensure_ascii=True)
 
     @staticmethod
-    def _interpretar(texto_salida: str) -> DiagnosticoProlog:
+    def _leer_json(texto_salida: str) -> dict:
         try:
             datos = json.loads(texto_salida)
         except json.JSONDecodeError as error:
             raise ErrorProlog(f"Respuesta del motor no es JSON: {texto_salida[:200]!r}") from error
         if "error" in datos:
             raise _error_desde_json(datos)
+        return datos
+
+    @classmethod
+    def _interpretar(cls, texto_salida: str) -> DiagnosticoProlog:
+        datos = cls._leer_json(texto_salida)
         try:
             return DiagnosticoProlog.model_validate(datos)
         except ValidationError as error:

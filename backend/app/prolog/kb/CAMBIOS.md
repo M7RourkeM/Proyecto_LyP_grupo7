@@ -1,6 +1,6 @@
 # Cambios a la base de conocimiento y al motor de inferencia
 
-Cambios hechos para integrar el motor con el backend. Las firmas originales se conservan y las 20 pruebas originales siguen pasando (29 de 29 en total, contando las 9 pruebas nuevas).
+Cambios hechos para integrar el motor con el backend. Las firmas originales se conservan y las pruebas originales siguen pasando (32 de 32 en total, contando las nuevas).
 
 ## 1. Una causa es candidata si explica al menos un sintoma (`motor_inferencia.pl`, seccion 2)
 
@@ -31,6 +31,12 @@ Las reglas a) a f) pasaron a `resolucion_regla/7`, que agrega un identificador d
 ## 7. Campos nuevos en `diagnostico_completo/4` (seccion 9)
 
 Se agregan `sla_horas_respuesta`, `sla_horas_resolucion`, `pasos_detalle`, `posible_problema_masivo` (si/no) y `reglas_aplicadas` (regla de tipo, `matriz_prioridad` y regla de atencion). Los campos que ya existian no cambian.
+
+## 8. Un problema masivo se escala aunque se reporte como individual (seccion 8)
+
+Antes, la regla c) escalaba solo si el usuario reportaba varios afectados. Si tres personas del mismo departamento reportaban la misma caida por separado, cada una como individual, el motor clasificaba el tercer caso como `problema`, pero lo dejaba en primer nivel.
+
+Ahora `diagnostico_completo/4` decide la atencion con `decision_atencion/8`. Si `problema_masivo_reporte/3` detecta un posible problema masivo, el caso se escala al grupo especialista de la causa con la regla `escalar_problema_masivo`. La unica regla con mayor prioridad es la de seguridad (`caso_de_seguridad/2`): un posible incidente de seguridad va siempre a ciberseguridad. `resolucion_regla/7` y `resolucion_soporte/5,6` no cambian. Se agregaron 3 pruebas (32 de 32 en total).
 
 ## Pendiente de acordar
 

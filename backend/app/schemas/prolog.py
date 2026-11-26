@@ -46,6 +46,32 @@ class ResultadoPrevio(BaseModel):
     funciono: bool
 
 
+class ItemCatalogo(BaseModel):
+    codigo: str
+    descripcion: str
+    servicio: str | None = None
+    grupo: str | None = None
+    impacto: str | None = None
+
+
+class CatalogoProlog(BaseModel):
+    """Datos que reconoce el motor, agrupados por tipo."""
+
+    sintomas: list[ItemCatalogo]
+    peticiones: list[ItemCatalogo]
+    contextos: list[ItemCatalogo]
+    evidencias: list[ItemCatalogo]
+
+    def tipo_de(self, codigo: str) -> str | None:
+        """Tipo de dato (sintoma, peticion, contexto, evidencia) o None si no existe."""
+        grupos = {"sintoma": self.sintomas, "peticion": self.peticiones,
+                  "contexto": self.contextos, "evidencia": self.evidencias}
+        for tipo, items in grupos.items():
+            if any(item.codigo == codigo for item in items):
+                return tipo
+        return None
+
+
 class Causa(BaseModel):
     id: str
     descripcion: str

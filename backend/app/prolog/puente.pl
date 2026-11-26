@@ -35,9 +35,12 @@ diagnostico_json(TextoEntrada, TextoSalida) :-
 
 % procesar(+Entrada, -Salida): nunca falla; los problemas se devuelven
 % como _{error: Codigo, detalle: Texto}.
+% La operacion por defecto es diagnosticar; "catalogo" lista los datos
+% que el motor reconoce.
 procesar(Entrada, Salida) :-
     get_dict(timeout_s, Entrada, Limite),
-    catch(call_with_time_limit(Limite, diagnosticar(Entrada, Salida0)),
+    ( get_dict(operacion, Entrada, Operacion) -> true ; Operacion = diagnosticar ),
+    catch(call_with_time_limit(Limite, ejecutar(Operacion, Entrada, Salida0)),
           Error, error_a_json(Error, Salida0)),
     !,
     Salida = Salida0.
@@ -62,6 +65,20 @@ message_to_codes(Error, Texto) :-
     atom_codes(Texto, Codes).
 message_to_codes(Error, Texto) :-
     format(atom(Texto), '~q', [Error]).
+
+ejecutar(diagnosticar, Entrada, Salida) :- diagnosticar(Entrada, Salida).
+ejecutar(catalogo, _, Salida) :- catalogo(Salida).
+
+% ----------------------------------------------------------------
+% Catalogo: lo que el motor reconoce, para validar y llenar formularios.
+% ----------------------------------------------------------------
+catalogo(_{sintomas: Sintomas, peticiones: Peticiones,
+           contextos: Contextos, evidencias: Evidencias}) :-
+    findall(_{codigo: S, servicio: Servicio, descripcion: D},
+            sintoma(S, Servicio, D), Sintomas),
+    findall(_{codigo: P, grupo: G, descripcion: D}, peticion(P, G, D), Peticiones),
+    findall(_{codigo: C, impacto: I, descripcion: D}, contexto(C, I, D), Contextos),
+    findall(_{codigo: E, descripcion: D}, evidencia(E, D), Evidencias).
 
 % ----------------------------------------------------------------
 % Diagnostico con datos temporales

@@ -38,8 +38,12 @@ def api(sesion_con_datos):
     from fastapi.testclient import TestClient
 
     from app.database import obtener_sesion
+    from app.ia.cliente_ollama import obtener_cliente_ia
     from app.main import app
 
     app.dependency_overrides[obtener_sesion] = lambda: sesion_con_datos
+    # Sin IA por defecto: las pruebas no deben depender de Ollama ni de un
+    # modelo real. Las pruebas de IA inyectan un cliente simulado.
+    app.dependency_overrides[obtener_cliente_ia] = lambda: None
     yield TestClient(app)
     app.dependency_overrides.clear()

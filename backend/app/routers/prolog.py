@@ -1,21 +1,18 @@
-"""Consulta directa al motor Prolog, sin crear tiquetes.
-
-Sirve para que el equipo pruebe la base de conocimiento desde Swagger.
-"""
+"""Consulta directa al motor Prolog: diagnostico de prueba y catalogo."""
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 
-from app.config import Configuracion, obtener_configuracion
-from app.prolog.adaptador_base import (EntradaInvalida, ErrorProlog, PrologNoDisponible,
-                                       PrologTimeout)
-from app.prolog.fabrica import crear_adaptador
+from app.prolog.adaptador_base import (AdaptadorProlog, EntradaInvalida, ErrorProlog,
+                                       PrologNoDisponible, PrologTimeout)
+from app.prolog.fabrica import obtener_adaptador
 from app.schemas.comunes import Error
-from app.schemas.prolog import DiagnosticoProlog, EntradaDiagnostico
+from app.schemas.prolog import CatalogoProlog, DiagnosticoProlog, EntradaDiagnostico
 
 router = APIRouter(prefix="/prolog", tags=["prolog"])
+Adaptador = Annotated[AdaptadorProlog, Depends(obtener_adaptador)]
 
 # Codigo HTTP de cada error del motor.
 ESTADO_POR_ERROR = [
@@ -24,6 +21,11 @@ ESTADO_POR_ERROR = [
     (PrologTimeout, status.HTTP_504_GATEWAY_TIMEOUT),
     (ErrorProlog, status.HTTP_502_BAD_GATEWAY),
 ]
+RESPUESTAS_MOTOR = {
+    502: {"model": Error, "description": "Error interno del motor"},
+    503: {"model": Error, "description": "Prolog no disponible"},
+    504: {"model": Error, "description": "El motor excedio el tiempo"},
+}
 
 
 def respuesta_error_prolog(_peticion: Request, error: ErrorProlog) -> JSONResponse:
@@ -38,14 +40,12 @@ def respuesta_error_prolog(_peticion: Request, error: ErrorProlog) -> JSONRespon
 @router.post("/diagnostico", response_model=DiagnosticoProlog,
              summary="Consultar el motor de inferencia sin crear un tiquete",
              responses={422: {"model": Error, "description": "Sintoma que el motor no reconoce"},
-                        502: {"model": Error, "description": "Error interno del motor"},
-                        503: {"model": Error, "description": "Prolog no disponible"},
-                        504: {"model": Error, "description": "El motor excedio el tiempo"}})
-def diagnosticar(datos: EntradaDiagnostico,
-                 config: Annotated[Configuracion, Depends(obtener_configuracion)]):
-    try:
-        adaptador = crear_adaptador(config)
-    except KeyError as error:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
-                            f"Adaptador desconocido: {config.prolog_adaptador}") from error
+                        **RESPUESTAS_MOTOR})
+def diagnosticar(datos: EntradaDiagnostico, adaptador: Adaptador):
     return adaptador.diagnosticar(datos)
+
+
+@router.get("/catalogo", response_model=CatalogoProlog, responses=RESPUESTAS_MOTOR,
+            summary="Sintomas, peticiones, contextos y evidencias que reconoce el motor")
+def catalogo(adaptador: Adaptador):
+    return adaptador.catalogo()

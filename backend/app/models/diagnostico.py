@@ -56,12 +56,19 @@ class Diagnostico(Base):
     guia_usuario: Mapped[str | None] = mapped_column(Text)
     nota_tecnica: Mapped[str | None] = mapped_column(Text)
     resultado_ia: Mapped[str | None] = mapped_column(String(15))
+    # Mensajes enviados a la IA (ya sanitizados), para auditoria.
+    prompt_ia: Mapped[str | None] = mapped_column(Text)
 
     creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)
 
     pasos: Mapped[list["PasoDiagnostico"]] = relationship(
         back_populates="diagnostico", cascade="all, delete-orphan",
         order_by="PasoDiagnostico.orden")
+
+    @property
+    def causas(self) -> list[dict]:
+        """Causas probables con su descripcion, tal como las devolvio el motor."""
+        return self.respuesta_prolog.get("causas", [])
 
 
 class PasoDiagnostico(Base):

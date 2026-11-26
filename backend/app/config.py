@@ -30,7 +30,22 @@ class Configuracion(BaseSettings):
     # IA generativa (Ollama local)
     ollama_url: str = "http://localhost:11434"
     ollama_modelo: str = "qwen2.5:3b"
-    ollama_timeout_s: float = 60.0
+    # La primera respuesta incluye cargar el modelo en memoria: puede tardar.
+    ollama_timeout_s: float = 120.0
+    # Tiempo que Ollama mantiene el modelo cargado despues de cada consulta.
+    ollama_keep_alive: str = "30m"
+    # Baja temperatura: textos mas predecibles y apegados al diagnostico.
+    ollama_temperatura: float = 0.2
+    # false: no se llama a Ollama y se usa siempre la plantilla.
+    ia_habilitada: bool = True
+
+    # Correlacion masiva: se buscan tiquetes abiertos del mismo departamento
+    # creados en las ultimas N horas.
+    correlacion_horas: int = 24
+    # Recurrencia: mismo usuario o activo con la misma categoria al menos
+    # recurrencia_minimo veces en recurrencia_dias dias.
+    recurrencia_minimo: int = 3
+    recurrencia_dias: int = 30
 
     # Chequeo de salud: tiempo maximo por dependencia
     salud_timeout_s: float = 3.0

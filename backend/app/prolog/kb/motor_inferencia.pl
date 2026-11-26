@@ -260,7 +260,7 @@ escalar_a(Causa, Grupo, Nivel) :-
 resolucion_regla(Causa, Reporte, _Aplicados, tercer_nivel, ciberseguridad,
                  'Posible incidente de seguridad; requiere revision especializada',
                  escalar_seguridad) :-
-    (Causa == certificado_vencido ; member(sospecha_seguridad, Reporte)), !.
+    caso_de_seguridad(Causa, Reporte), !.
 % b) Pasos de solucion agotados.
 resolucion_regla(Causa, _Reporte, Aplicados, Nivel, Grupo,
                  'Se aplicaron todos los pasos de primer nivel sin resolver el caso',
@@ -291,6 +291,23 @@ resolucion_regla(Causa, _Reporte, _Aplicados, Nivel, Grupo,
                  'No existe una solucion de primer nivel registrada',
                  escalar_sin_guia) :-
     escalar_a(Causa, Grupo, Nivel).
+
+caso_de_seguridad(Causa, Reporte) :-
+    ( Causa == certificado_vencido ; member(sospecha_seguridad, Reporte) ).
+
+% Decision de atencion considerando la correlacion del departamento.
+% Un posible problema masivo (varios incidentes abiertos similares en el
+% departamento) se escala al grupo especialista aunque el usuario lo
+% haya reportado como individual. Solo la regla de seguridad tiene mayor
+% prioridad, porque un incidente de seguridad va siempre a ciberseguridad.
+decision_atencion(Causa, Reporte, Departamento, _Aplicados, Nivel, Grupo,
+                  'Posible problema masivo: hay varios incidentes abiertos similares en el departamento',
+                  escalar_problema_masivo) :-
+    \+ caso_de_seguridad(Causa, Reporte),
+    problema_masivo_reporte(Reporte, Departamento, si), !,
+    escalar_a(Causa, Grupo, Nivel).
+decision_atencion(Causa, Reporte, _Departamento, Aplicados, Nivel, Grupo, Motivo, Regla) :-
+    resolucion_regla(Causa, Reporte, Aplicados, Nivel, Grupo, Motivo, Regla).
 
 % Version sin identificador de regla (se conserva la firma original).
 resolucion_soporte(Causa, Reporte, Aplicados, Nivel, Grupo, Motivo) :-
@@ -345,7 +362,8 @@ diagnostico_completo(Reporte, Departamento, Aplicados,
     (   Causas = [Causa | Otras]
     ->  pasos_solucion(Causa, Pasos),
         pasos_detalle(Causa, Detalle),
-        resolucion_regla(Causa, Reporte, Aplicados, Nivel, Grupo, Motivo, ReglaAtencion)
+        decision_atencion(Causa, Reporte, Departamento, Aplicados, Nivel, Grupo, Motivo,
+                          ReglaAtencion)
     ;   Tipo == solicitud_servicio
     ->  Causa = no_aplica, Otras = [], Pasos = [], Detalle = [],
         grupo_sin_causa(Reporte, Grupo), nivel_de_grupo(Grupo, Nivel),

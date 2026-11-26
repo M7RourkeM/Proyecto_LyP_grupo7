@@ -1,6 +1,7 @@
 """Tiquete, datos del reporte, historial de estados y retroalimentacion."""
 
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import (Boolean, CheckConstraint, Float, ForeignKey, Index,
                         Integer, String, Text, UniqueConstraint)
@@ -52,6 +53,8 @@ class Tiquete(Base):
     sospecha_seguridad: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Valores vigentes (inicialmente los del diagnostico de Prolog)
+    # Categoria que asigna el motor (ej. red, correo); se usa para recurrencia.
+    categoria: Mapped[str | None] = mapped_column(String(50), index=True)
     estado: Mapped[str] = mapped_column(String(20), default="registrado", index=True)
     tipo_registro: Mapped[str | None] = mapped_column(String(30))
     prioridad: Mapped[str | None] = mapped_column(String(2), index=True)
@@ -69,7 +72,9 @@ class Tiquete(Base):
         back_populates="tiquete", cascade="all, delete-orphan")
     historial: Mapped[list["HistorialTiquete"]] = relationship(
         back_populates="tiquete", cascade="all, delete-orphan",
-        order_by="HistorialTiquete.fecha")
+        order_by="HistorialTiquete.id")
+    diagnostico: Mapped[Optional["Diagnostico"]] = relationship(
+        cascade="all, delete-orphan", uselist=False)
 
 
 class DatoReporte(Base):

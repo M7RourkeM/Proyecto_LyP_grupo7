@@ -149,7 +149,7 @@ prueba('Pasos con identificador y orden',
 
 prueba('Reglas aplicadas en el diagnostico',
     ( diagnostico_completo([no_recibe_correos, varios_usuarios_afectados], finanzas, 0, D),
-      memberchk(reglas_aplicadas = [tipo_problema_masivo, matriz_prioridad, escalar_varios_usuarios], D) )).
+      memberchk(reglas_aplicadas = [tipo_problema_masivo, matriz_prioridad, escalar_problema_masivo], D) )).
 
 prueba('Sin incidentes cargados no hay problema masivo',
     ( retractall(incidente_previo(_, _, _, _, _)),
@@ -157,6 +157,24 @@ prueba('Sin incidentes cargados no hay problema masivo',
       cargar_datos_ejemplo,
       memberchk(tipo = incidente, D),
       memberchk(posible_problema_masivo = no, D) )).
+
+prueba('Problema masivo reportado como individual se escala al especialista',
+    ( diagnostico_completo([no_recibe_correos], finanzas, 0, D),
+      memberchk(tipo = problema, D),
+      memberchk(nivel = segundo_nivel, D),
+      memberchk(grupo = infraestructura, D),
+      memberchk(reglas_aplicadas = [_, _, escalar_problema_masivo], D) )).
+
+prueba('Sin problema masivo, el caso individual sigue en primer nivel',
+    ( retractall(incidente_previo(_, _, _, _, _)),
+      diagnostico_completo([cuenta_bloqueada], finanzas, 0, D),
+      cargar_datos_ejemplo,
+      memberchk(nivel = primer_nivel, D) )).
+
+prueba('La seguridad tiene prioridad sobre el problema masivo',
+    ( diagnostico_completo([no_recibe_correos, sospecha_seguridad], finanzas, 0, D),
+      memberchk(grupo = ciberseguridad, D),
+      memberchk(reglas_aplicadas = [_, _, escalar_seguridad], D) )).
 
 % ----------------------------------------------------------------
 % Ejecutar todas las pruebas y mostrar el resultado
