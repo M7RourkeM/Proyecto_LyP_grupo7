@@ -26,6 +26,10 @@ API en FastAPI que registra tiquetes, consulta el motor de inferencia en Prolog 
    ```
    .venv\Scripts\python -m scripts.seed
    ```
+   Opcionalmente, para tener datos en el panel de indicadores, crear 10 tiquetes de ejemplo con fechas pasadas (requiere SWI-Prolog):
+   ```
+   .venv\Scripts\python -m scripts.seed_tiquetes
+   ```
 4. Levantar la API:
    ```
    .venv\Scripts\python -m uvicorn app.main:app --reload

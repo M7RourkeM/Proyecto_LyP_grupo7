@@ -12,7 +12,7 @@ from app.config import Configuracion, obtener_configuracion
 from app.database import Base, motor
 from app.ia.cliente_ollama import ClienteOllama
 from app.prolog.adaptador_base import ErrorProlog
-from app.routers import activos, agentes, catalogos, prolog, tiquetes, usuarios
+from app.routers import activos, agentes, catalogos, prolog, seguimiento, tiquetes, usuarios
 from app.routers.prolog import respuesta_error_prolog
 from app.services.salud import estado_general
 
@@ -33,7 +33,7 @@ async def ciclo_de_vida(_app: FastAPI):
 app = FastAPI(
     title="Asistente de Diagnostico y Soporte de TI",
     description="Backend de la mesa de servicios: diagnostico con Prolog e IA generativa local.",
-    version="0.4.0",
+    version="0.6.0",
     lifespan=ciclo_de_vida,
 )
 
@@ -42,6 +42,7 @@ app.include_router(agentes.router)
 app.include_router(activos.router)
 app.include_router(catalogos.router)
 app.include_router(tiquetes.router)
+app.include_router(seguimiento.router)
 app.include_router(prolog.router)
 app.add_exception_handler(ErrorProlog, respuesta_error_prolog)
 

@@ -47,6 +47,12 @@ class Configuracion(BaseSettings):
     recurrencia_minimo: int = 3
     recurrencia_dias: int = 30
 
+    # Jornada laboral para medir el SLA en horas habiles (lunes a viernes).
+    # Costa Rica no tiene horario de verano: basta un desfase fijo respecto a UTC.
+    jornada_inicio_hora: int = 8
+    jornada_fin_hora: int = 16
+    zona_horaria_utc_offset: int = -6
+
     # Chequeo de salud: tiempo maximo por dependencia
     salud_timeout_s: float = 3.0
 

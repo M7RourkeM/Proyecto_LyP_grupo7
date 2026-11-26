@@ -130,3 +130,10 @@ class Retroalimentacion(Base):
     paso_que_resolvio_id: Mapped[int | None] = mapped_column(ForeignKey("paso_diagnostico.id"))
     comentario: Mapped[str | None] = mapped_column(Text)
     fecha: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)
+
+    paso: Mapped[Optional["PasoDiagnostico"]] = relationship()
+
+    @property
+    def paso_que_resolvio(self) -> str | None:
+        """Codigo del paso (ej. cable_desconectado_2), para la API."""
+        return self.paso.codigo if self.paso else None
