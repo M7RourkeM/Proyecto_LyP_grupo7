@@ -2,11 +2,11 @@
 
 from datetime import datetime
 
-from sqlalchemy import (JSON, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer,
+from sqlalchemy import (JSON, Boolean, CheckConstraint, Float, ForeignKey, Integer,
                         String, Text, UniqueConstraint)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, FechaUTC
 from app.models.enums import (NIVELES, PRIORIDADES, RESULTADOS_IA, TIPOS_REGISTRO, URGENCIAS,
                               check_en)
 from app.models.organizacion import ahora_utc
@@ -57,7 +57,7 @@ class Diagnostico(Base):
     nota_tecnica: Mapped[str | None] = mapped_column(Text)
     resultado_ia: Mapped[str | None] = mapped_column(String(15))
 
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc)
+    creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)
 
     pasos: Mapped[list["PasoDiagnostico"]] = relationship(
         back_populates="diagnostico", cascade="all, delete-orphan",

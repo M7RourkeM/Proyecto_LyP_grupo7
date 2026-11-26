@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import func, inspect, select
@@ -133,3 +134,28 @@ def test_tiquete_tiene_indices_en_columnas_de_busqueda(motor_prueba):
     indices = inspect(motor_prueba).get_indexes("tiquete")
     columnas = {col for indice in indices for col in indice["column_names"]}
     assert {"estado", "prioridad", "departamento_id", "creado_en"} <= columnas
+
+
+# --- Fechas ---------------------------------------------------------------
+
+def test_fechas_se_leen_en_utc_con_zona_horaria(sesion_con_datos):
+    usuario = sesion_con_datos.scalars(select(Usuario)).first()
+    sesion_con_datos.expire_all()  # obliga a releer desde la base
+    creado = sesion_con_datos.get(Usuario, usuario.id).creado_en
+    assert creado.utcoffset() == timedelta(0)
+
+    # Una hora de Costa Rica (UTC-6) se guarda y se devuelve convertida a UTC.
+    hora_cr = datetime(2026, 11, 26, 8, 0, tzinfo=timezone(timedelta(hours=-6)))
+    usuario.creado_en = hora_cr
+    sesion_con_datos.commit()
+    sesion_con_datos.expire_all()
+    releido = sesion_con_datos.get(Usuario, usuario.id).creado_en
+    assert releido == hora_cr and releido.hour == 14
+
+
+def test_fecha_sin_zona_horaria_se_rechaza(sesion_con_datos):
+
+    usuario = sesion_con_datos.scalars(select(Usuario)).first()
+    usuario.creado_en = datetime(2026, 11, 26, 8, 0)
+    with pytest.raises(Exception, match="zona horaria"):
+        sesion_con_datos.commit()

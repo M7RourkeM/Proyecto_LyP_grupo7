@@ -2,11 +2,11 @@
 
 from datetime import datetime
 
-from sqlalchemy import (Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index,
+from sqlalchemy import (Boolean, CheckConstraint, Float, ForeignKey, Index,
                         Integer, String, Text, UniqueConstraint)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, FechaUTC
 from app.models.enums import (ALCANCES, ESTADOS_TIQUETE, NIVELES, PRIORIDADES,
                               TIPOS_DATO_REPORTE, TIPOS_REGISTRO, URGENCIAS, check_en)
 from app.models.organizacion import ahora_utc
@@ -58,12 +58,12 @@ class Tiquete(Base):
     nivel: Mapped[int | None] = mapped_column(Integer)
     sla_horas_resolucion: Mapped[float | None] = mapped_column(Float)
 
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc,
+    creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc,
                                                 index=True)
-    actualizado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc,
+    actualizado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc,
                                                      onupdate=ahora_utc)
-    resuelto_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    cerrado_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resuelto_en: Mapped[datetime | None] = mapped_column(FechaUTC)
+    cerrado_en: Mapped[datetime | None] = mapped_column(FechaUTC)
 
     datos_reporte: Mapped[list["DatoReporte"]] = relationship(
         back_populates="tiquete", cascade="all, delete-orphan")
@@ -108,7 +108,7 @@ class HistorialTiquete(Base):
     # NULL cuando el cambio lo hace el sistema (ej. escalamiento automatico).
     agente_id: Mapped[int | None] = mapped_column(ForeignKey("agente.id"))
     comentario: Mapped[str | None] = mapped_column(Text)
-    fecha: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc,
+    fecha: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc,
                                             index=True)
 
     tiquete: Mapped[Tiquete] = relationship(back_populates="historial")
@@ -124,4 +124,4 @@ class Retroalimentacion(Base):
     funciono: Mapped[bool] = mapped_column(Boolean)
     paso_que_resolvio_id: Mapped[int | None] = mapped_column(ForeignKey("paso_diagnostico.id"))
     comentario: Mapped[str | None] = mapped_column(Text)
-    fecha: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc)
+    fecha: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)

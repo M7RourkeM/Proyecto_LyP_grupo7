@@ -2,10 +2,10 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, FechaUTC
 from app.models.enums import NIVELES, TIPOS_ACTIVO, check_en
 
 
@@ -47,7 +47,7 @@ class Usuario(Base):
     identificacion: Mapped[str | None] = mapped_column(String(30), unique=True)
     departamento_id: Mapped[int] = mapped_column(ForeignKey("departamento.id"), index=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc)
+    creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)
 
     departamento: Mapped[Departamento] = relationship(back_populates="usuarios")
 
@@ -60,7 +60,7 @@ class Agente(Base):
     correo: Mapped[str] = mapped_column(String(120), unique=True)
     grupo_resolutor_id: Mapped[int] = mapped_column(ForeignKey("grupo_resolutor.id"), index=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc)
+    creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)
 
     grupo: Mapped[GrupoResolutor] = relationship()
 
@@ -78,7 +78,7 @@ class Activo(Base):
     departamento_id: Mapped[int] = mapped_column(ForeignKey("departamento.id"), index=True)
     # Un activo compartido (ej. impresora de red) puede no tener usuario asignado.
     usuario_id: Mapped[int | None] = mapped_column(ForeignKey("usuario.id"), index=True)
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=ahora_utc)
+    creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora_utc)
 
     departamento: Mapped[Departamento] = relationship()
     usuario: Mapped[Usuario | None] = relationship()

@@ -26,3 +26,20 @@ def sesion(motor_prueba):
 def sesion_con_datos(sesion):
     cargar_datos(sesion)
     return sesion
+
+
+@pytest.fixture
+def api(sesion_con_datos):
+    """Cliente HTTP contra una base en memoria con los datos de la semilla.
+
+    No se usa `with TestClient(...)` para no ejecutar el ciclo de vida de la
+    app, que crearia tablas en la base real.
+    """
+    from fastapi.testclient import TestClient
+
+    from app.database import obtener_sesion
+    from app.main import app
+
+    app.dependency_overrides[obtener_sesion] = lambda: sesion_con_datos
+    yield TestClient(app)
+    app.dependency_overrides.clear()
